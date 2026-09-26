@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Student Sport & Lifestyle TMA</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js for Progress tracking -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        tg: {
+                            bg: '#17212b',
+                            card: '#232e3c',
+                            button: '#5288c1',
+                            text: '#f5f5f5',
+                            hint: '#708499',
+                            accent: '#64b5ef',
+                            secondary: '#1e2c3a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Telegram Mini App Shell Styling */
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        /* Telegram App Frame Simulation */
+        .tma-frame {
+            max-width: 420px;
+            height: 840px;
+            margin: 0 auto;
+            border-radius: 40px;
+            border: 12px solid #334155;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+            background-color: #17212b;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @media (max-width: 480px) {
+            .tma-frame {
+                max-width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                border: none;
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.25s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glass-card {
+            background: rgba(35, 46, 60, 0.8);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="p-0 sm:p-6 flex items-center justify-center min-h-screen bg-slate-950">
+
+<div class="tma-frame">
+    <!-- Top Telegram Bar -->
+    <div class="bg-[#17212b] px-4 pt-3 pb-2 flex items-center justify-between border-b border-slate-800 text-xs text-slate-400 z-10">
+        <div class="flex items-center space-x-2">
+            <button id="close-btn" onclick="showNotification('TMA Closed simulation')" class="hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <span class="font-semibold text-white text-sm">StudentSport Club</span>
+        </div>
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-ellipsis-vertical text-base cursor-pointer"></i>
+        </div>
+    </div>
+
+    <!-- Main Content Area (Scrollable) -->
+    <div id="app-container" class="flex-1 overflow-y-auto p-4 space-y-4">
+
+        <!-- Banner / Status Header -->
+        <div class="glass-card rounded-2xl p-4 relative overflow-hidden">
+            <div class="absolute -right-4 -bottom-4 opacity-10 text-6xl text-sky-400">
+                <i class="fa-solid fa-dumbbell"></i>
+            </div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <span id="user-greeting" class="text-xs font-medium text-slate-400">Привет, Студент 👋</span>
+                    <h2 class="text-lg font-bold text-white mt-0.5">Студенческий Спорт & Стили</h2>
+                </div>
+                <span id="sub-badge" class="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                    <i class="fa-solid fa-lock text-[10px]"></i> FREE
+                </span>
+            </div>
+
+            <!-- Subscription Upgrade Box if not active -->
+            <div id="sub-banner-box" class="mt-4 p-3 rounded-xl bg-gradient-to-r from-sky-600/30 to-indigo-600/30 border border-sky-500/30">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-bold text-sky-200">PRO Студент Подписка</p>
+                        <p class="text-[11px] text-slate-300">Планы тренировок, студенческий рацион & закрытый чат</p>
+                    </div>
+                    <button onclick="openPaymentModal()" class="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white text-xs font-semibold rounded-lg shadow-md transition-all">
+                        199 ₽/мес
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 1: DASHBOARD / OVERVIEW -->
+        <div id="tab-dashboard" class="tab-content active space-y-4">
+            <!-- Daily Stats Row -->
+            <div class="grid grid-cols-3 gap-2">
+                <div class="glass-card p-3 rounded-xl text-center">
+                    <i class="fa-solid fa-fire text-amber-500 text-lg mb-1"></i>
+                    <p class="text-[10px] text-slate-400">Калории</p>
+                    <p class="text-sm font-bold text-white" id="cal-count">1,850 / 2.300</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl text-center">
+                    <i class="fa-solid fa-bottle-water text-sky-400 text-lg mb-1"></i>
+                    <p class="text-[10px] text-slate-400">Вода</p>
+                    <p class="text-sm font-bold text-white" id="water-count">1.8 Л</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl text-center">
+                    <i class="fa-solid fa-[#64b5ef] fa-bolt text-yellow-400 text-lg mb-1"></i>
+                    <p class="text-[10px] text-slate-400">Стрик</p>
+                    <p class="text-sm font-bold text-white">5 Дней 🔥</p>
+                </div>
+            </div>
+
+            <!-- Today's Workout Card -->
+            <div class="glass-card p-4 rounded-2xl">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-person-running text-sky-400"></i> Тренировка Дня
+                    </h3>
+                    <span class="text-[10px] bg-slate-700 text-slate-300 px-2 py-0.5 rounded">Общежитие / Улица</span>
+                </div>
+                <p class="text-xs text-slate-300 mb-3">Функциональная тренировка с собственным весом (30 мин)</p>
+                <div class="space-y-2 mb-3">
+                    <div class="flex justify-between text-xs text-slate-400 bg-slate-800/50 p-2 rounded-lg">
+                        <span>1. Отжимания с узким хватом</span>
+                        <span class="text-white font-medium">4 × 15</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400 bg-slate-800/50 p-2 rounded-lg">
+                        <span>2. Приседания с рюкзаком</span>
+                        <span class="text-white font-medium">4 × 20</span>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-400 bg-slate-800/50 p-2 rounded-lg">
+                        <span>3. Планка</span>
+                        <span class="text-white font-medium">3 × 60 сек</span>
+                    </div>
+                </div>
+                <button onclick="completeWorkout()" id="workout-btn" class="w-full py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium text-xs rounded-xl transition">
+                    <i class="fa-solid fa-check mr-1"></i> Отметить выполненной
+                </button>
+            </div>
+
+            <!-- Student Meal Plan Showcase -->
+            <div class="glass-card p-4 rounded-2xl">
+                <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-utensils text-emerald-400"></i> Рацион Студента (До 250₽/день)
+                </h3>
+                <div class="text-xs text-slate-300 space-y-2">
+                    <div class="flex justify-between items-center border-b border-slate-700/50 pb-1.5">
+                        <div>
+                            <p class="font-semibold text-slate-200">Завтрак: Овсянка + Яйца</p>
+                            <p class="text-[10px] text-slate-400">Белки: 22g | Стоимость: ~45 ₽</p>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-slate-700/50 pb-1.5">
+                        <div>
+                            <p class="font-semibold text-slate-200">Обед: Гречка + Куриная грудка</p>
+                            <p class="text-[10px] text-slate-400">Белки: 40g | Стоимость: ~110 ₽</p>
+                        </div>
+                        <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="font-semibold text-slate-200">Ужин: Творог 5% + Банка тунца</p>
+                            <p class="text-[10px] text-slate-400">Белки: 35g | Стоимость: ~95 ₽</p>
+                        </div>
+                        <i class="fa-regular fa-circle text-slate-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: PRO CONTENT & COMMUNITY (LOCKED IF FREE) -->
+        <div id="tab-pro" class="tab-content space-y-4">
+            <div id="pro-locked-view" class="text-center py-8 glass-card rounded-2xl p-6 space-y-3">
+                <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-amber-500/20">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h3 class="text-base font-bold text-white">Приватный Клуб Студентов</h3>
+                <p class="text-xs text-slate-400 leading-relaxed">
+                    Доступ к закрытому Telegram-каналу, базе эффективных студенческих тренировок, чату единомышленников и разбору техники.
+                </p>
+                <div class="pt-2">
+                    <button onclick="openPaymentModal()" class="w-full py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg transition">
+                        Разблокировать за 199 ₽/мес
+                    </button>
+                </div>
+            </div>
+
+            <div id="pro-unlocked-view" class="hidden space-y-4">
+                <div class="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                        <div>
+                            <p class="text-xs font-bold text-emerald-300">Подписка Активна</p>
+                            <p class="text-[10px] text-slate-400">Свободный доступ к материалам</p>
+                        </div>
+                    </div>
+                    <a href="#" onclick="showNotification('Переход в приватный TG канал...')" class="text-xs bg-emerald-600 text-white px-2.5 py-1 rounded-lg">Канал</a>
+                </div>
+
+                <div class="glass-card p-4 rounded-2xl space-y-3">
+                    <h4 class="text-xs font-bold text-sky-400 uppercase tracking-wider">Эксклюзивные базы знаний</h4>
+                    <div class="p-3 bg-slate-800/60 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-800" onclick="showNotification('Открытие Гайда по питанию...')">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-book text-amber-400"></i>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Гайд: Набор массы при бюджете 5000₽/мес</p>
+                                <p class="text-[10px] text-slate-400">PDF • 14 страниц</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </div>
+
+                    <div class="p-3 bg-slate-800/60 rounded-xl flex items-center justify-between cursor-pointer hover:bg-slate-800" onclick="showNotification('Открытие Программы тренировок...')">
+                        <div class="flex items-center space-x-3">
+                            <i class="fa-solid fa-dumbbell text-sky-400"></i>
+                            <div>
+                                <p class="text-xs font-semibold text-white">Программа: Рельеф без тренажерного зала</p>
+                                <p class="text-[10px] text-slate-400">Видеокомплекс • 4 недели</p>
+                            </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right text-xs text-slate-500"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: PROGRESS TRACKER -->
+        <div id="tab-progress" class="tab-content space-y-4">
+            <div class="glass-card p-4 rounded-2xl">
+                <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-line text-sky-400"></i> Прогресс Веса (кг)
+                </h3>
+                <div class="h-48 relative">
+                    <canvas id="progressChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-2xl">
+                <h3 class="text-sm font-bold text-white mb-3">Записать Новые Замеры</h3>
+                <div class="flex gap-2">
+                    <input type="number" id="weight-input" placeholder="Текущий вес (кг)" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+                    <button onclick="addWeightEntry()" class="px-4 py-2 bg-sky-500 text-white font-medium text-xs rounded-xl hover:bg-sky-400">Сохранить</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PROFILE & SETTINGS -->
+        <div id="tab-profile" class="tab-content space-y-4">
+            <div class="glass-card p-4 rounded-2xl text-center space-y-2">
+                <div class="w-16 h-16 bg-sky-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold text-white border-2 border-sky-400">
+                    СА
+                </div>
+                <h3 class="text-sm font-bold text-white">Студент Атлет</h3>
+                <p class="text-xs text-slate-400">Telegram ID: @student_sportsman</p>
+            </div>
+
+            <div class="glass-card p-4 rounded-2xl space-y-3">
+                <h4 class="text-xs font-bold text-slate-400 uppercase">Статус Подписки</h4>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-300">Текущий план:</span>
+                    <span id="profile-sub-plan" class="font-semibold text-amber-400">Free Студент</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-300">Действует до:</span>
+                    <span id="profile-sub-date" class="text-slate-400">—</span>
+                </div>
+                <button onclick="openPaymentModal()" id="profile-sub-btn" class="w-full mt-2 py-2 bg-sky-500/20 border border-sky-500/40 text-sky-300 font-semibold text-xs rounded-xl">
+                    Управление подпиской / Оплата
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Telegram Mini App Navigation -->
+    <div class="bg-[#17212b] border-t border-slate-800 px-2 py-2 flex justify-around items-center z-10">
+        <button onclick="switchTab('dashboard', this)" class="nav-btn active flex flex-col items-center space-y-1 text-sky-400">
+            <i class="fa-solid fa-house text-base"></i>
+            <span class="text-[10px]">Главная</span>
+        </button>
+        <button onclick="switchTab('pro', this)" class="nav-btn flex flex-col items-center space-y-1 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-star text-base"></i>
+            <span class="text-[10px]">Клуб PRO</span>
+        </button>
+        <button onclick="switchTab('progress', this)" class="nav-btn flex flex-col items-center space-y-1 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-chart-simple text-base"></i>
+            <span class="text-[10px]">Прогресс</span>
+        </button>
+        <button onclick="switchTab('profile', this)" class="nav-btn flex flex-col items-center space-y-1 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-user text-base"></i>
+            <span class="text-[10px]">Профиль</span>
+        </button>
+    </div>
+
+    <!-- SIMULATED TG PAYMENT MODAL / PAYWALL -->
+    <div id="payment-modal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end justify-center hidden">
+        <div class="bg-[#17212b] w-full rounded-t-3xl p-5 border-t border-slate-700 space-y-4 animate-slide-up">
+            <div class="w-12 h-1 bg-slate-700 rounded-full mx-auto"></div>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h3 class="text-base font-bold text-white">Оплата подписки PRO</h3>
+                    <p class="text-xs text-slate-400">Автоматическое продление раз в месяц</p>
+                </div>
+                <button onclick="closePaymentModal()" class="text-slate-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="p-3 bg-slate-800/80 rounded-xl space-y-2">
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Товар:</span>
+                    <span class="text-white font-medium">Закрытый Спорт-Клуб</span>
+                </div>
+                <div class="flex justify-between text-xs">
+                    <span class="text-slate-400">Период:</span>
+                    <span class="text-white font-medium">1 Месяц</span>
+                </div>
+                <div class="flex justify-between text-xs border-t border-slate-700 pt-2 font-bold">
+                    <span class="text-slate-300">К оплате:</span>
+                    <span class="text-sky-400 text-sm">199 ₽</span>
+                </div>
+            </div>
+
+            <!-- Payment Options -->
+            <div class="space-y-2">
+                <button onclick="processSimulatedPayment('Банковская Карта / СБП')" class="w-full py-3 bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2">
+                    <i class="fa-regular fa-credit-card"></i> Оплатить через Paywall / СБП (199 ₽)
+                </button>
+                <button onclick="processSimulatedPayment('Telegram Stars')" class="w-full py-3 bg-amber-500/20 border border-amber-500/40 hover:bg-amber-500/30 text-amber-300 font-bold text-xs rounded-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-star"></i> Оплатить 100 Telegram Stars
+                </button>
+            </div>
+            <p class="text-[10px] text-center text-slate-500">Симуляция платежной системы Telegram Mini App</p>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="absolute top-12 left-1/2 -translate-x-1/2 bg-sky-600 text-white text-xs px-4 py-2 rounded-full shadow-lg opacity-0 transition-opacity pointer-events-none z-50">
+        Уведомление
+    </div>
+</div>
+
+<script>
+    // State
+    let isSubscribed = false;
+    let weightData = [72.5, 72.8, 72.2, 71.9, 72.1, 71.8];
+    let chartInstance = null;
+
+    // Initialize Chart
+    window.onload = function() {
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                datasets: [{
+                    label: 'Вес (кг)',
+                    data: weightData,
+                    borderColor: '#64b5ef',
+                    backgroundColor: 'rgba(100, 181, 239, 0.1)',
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: '#708499' }, grid: { display: false } },
+                    y: { ticks: { color: '#708499' }, grid: { color: '#232e3c' } }
+                }
+            }
+        });
+    };
+
+    // Tab Navigation
+    function switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('text-sky-400');
+            btn.classList.add('text-slate-400');
+        });
+        btnElement.classList.remove('text-slate-400');
+        btnElement.classList.add('text-sky-400');
+    }
+
+    // Modal Control
+    function openPaymentModal() {
+        document.getElementById('payment-modal').classList.remove('hidden');
+    }
+
+    function closePaymentModal() {
+        document.getElementById('payment-modal').classList.add('hidden');
+    }
+
+    // Process Simulated Payment
+    function processSimulatedPayment(method) {
+        closePaymentModal();
+        showNotification(`Оплата прошла через ${method}!`);
+        
+        // Update Subscription State
+        isSubscribed = true;
+        
+        // UI Updates
+        document.getElementById('sub-badge').className = "px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1";
+        document.getElementById('sub-badge').innerHTML = `<i class="fa-solid fa-check text-[10px]"></i> PRO`;
+        
+        document.getElementById('sub-banner-box').classList.add('hidden');
+        document.getElementById('pro-locked-view').classList.add('hidden');
+        document.getElementById('pro-unlocked-view').classList.remove('hidden');
+        
+        document.getElementById('profile-sub-plan').textContent = 'PRO Студент (Активна)';
+        document.getElementById('profile-sub-plan').className = 'font-semibold text-emerald-400';
+        document.getElementById('profile-sub-date').textContent = 'Через 30 дней';
+        document.getElementById('profile-sub-btn').textContent = 'Продлить подписку';
+    }
+
+    // Action Interactions
+    function completeWorkout() {
+        const btn = document.getElementById('workout-btn');
+        btn.classList.remove('bg-slate-700', 'hover:bg-slate-600');
+        btn.classList.add('bg-emerald-600', 'text-white');
+        btn.innerHTML = `<i class="fa-solid fa-circle-check mr-1"></i> Выполнено на сегодня!`;
+        showNotification('Отлично! Тренировка засчитана в стрик.');
+    }
+
+    function addWeightEntry() {
+        const input = document.getElementById('weight-input');
+        const val = parseFloat(input.value);
+        if (val && chartInstance) {
+            weightData.push(val);
+            chartInstance.data.labels.push('Вс');
+            chartInstance.data.datasets[0].data = weightData;
+            chartInstance.update();
+            input.value = '';
+            showNotification('Новый вес зафиксирован!');
+        }
+    }
+
+    function showNotification(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.remove('opacity-0');
+        toast.classList.add('opacity-100');
+        setTimeout(() => {
+            toast.classList.remove('opacity-100');
+            toast.classList.add('opacity-0');
+        }, 2200);
+    }
+</script>
+</body>
+</html>
